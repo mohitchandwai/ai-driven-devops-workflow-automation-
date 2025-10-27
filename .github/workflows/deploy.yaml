@@ -1,0 +1,31 @@
+name: Deploy Frontend
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: echo "dckr_pat_2DJH1IrjJpQkwCIfDKXiFZ7gh84" | docker login -u "mohitchandwani" --password-stdin
+
+      - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
+      - run: docker run -e CI=true cygnetops/react-test npm test
+
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: AKIA3FLDZFFHQOTOMNU3
+          aws_secret_key: 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
+          application_name: Frontend 
+          environment_name: Frontend-env
+          existing_bucket_name: elasticbeanstalk-ap-south-1-767397800271
+          region: ap-south-1
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
