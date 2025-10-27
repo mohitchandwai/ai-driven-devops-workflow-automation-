@@ -13,6 +13,7 @@ jobs:
 
       - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
       - run: docker run -e CI=true cygnetops/react-test npm test
+<<<<<<< HEAD
 
 
       - name: Generate deployment package
@@ -29,3 +30,5 @@ jobs:
           region: ap-south-1
           version_label: ${{ github.sha }}
           deployment_package: deploy.zip
+=======
+>>>>>>> 3678921ec826e8c6d0d0ef8b658c1fe8a6aa7a3f
