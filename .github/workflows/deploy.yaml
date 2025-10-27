@@ -9,11 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "dckr_pat_2DJH1IrjJpQkwCIfDKXiFZ7gh84" | docker login -u "mohitchandwani" --password-stdin
+      - run: echo ${{ secrets.DOCKER_KEY }} | docker login -u "mohitchandwani" --password-stdin
 
       - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
       - run: docker run -e CI=true cygnetops/react-test npm test
-<<<<<<< HEAD
 
 
       - name: Generate deployment package
@@ -22,8 +21,8 @@ jobs:
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v18
         with:
-          aws_access_key: AKIA3FLDZFFHQOTOMNU3
-          aws_secret_key: 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
+          aws_access_key: ${{ secrets.acess_key }}
+          aws_secret_key: ${{ secrets.secrete_key }}
           application_name: Frontend 
           environment_name: Frontend-env
           existing_bucket_name: elasticbeanstalk-ap-south-1-767397800271
@@ -31,4 +30,3 @@ jobs:
           version_label: ${{ github.sha }}
           deployment_package: deploy.zip
 =======
->>>>>>> 3678921ec826e8c6d0d0ef8b658c1fe8a6aa7a3f
