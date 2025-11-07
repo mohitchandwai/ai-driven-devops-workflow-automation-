@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: sending_failure_mail
-      - uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v3
         with:
           server_address: smpt.gmail.com 
           server_port: 465
@@ -55,8 +55,9 @@ jobs:
           body: |
             the cI/CD pipeline failed for the push to **${{github.ref_name}}** by **{{github.event.pusher.name}}**.
             **workflow Run** ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
-            please check thepipeline joblogs details.
-            commit_id: ${{github.sha}} 
+            please check the pipeline job logs details.
+
+            Commit ID: ${{github.sha}} 
 
           
 
