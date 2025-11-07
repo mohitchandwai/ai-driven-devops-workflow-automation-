@@ -5,10 +5,17 @@ on:
       - main
 
 jobs:
-  build:
+  Ai_based_review_and_custom_tests_and_deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: checkout code 
       - uses: actions/checkout@v3
+      - name: Gen_Ai_test
+      - uses: openai/generate-tests-action@v2
+        with:
+          api_key: ${{secrets.AI_API_KEY}}
+      - name: confirm ai test injestion
+        run : echo "sucefully complete AI testing"
       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_KEY }}
 
       - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
@@ -30,5 +37,26 @@ jobs:
           region: ap-south-1
           version_label: ${{ github.sha }}
           deployment_package: deploy.zip
+  notify_on_failure:
+    needs: Ai_based_review_and_custom_tests_and_deploy
+    if: failure() && needs.Ai_based_review_and_custom_tests_and_deploy.result == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: sending_failure_mail
+      - uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smpt.gmail.com 
+          server_port: 465
+          username: ${{secrete.mail_username}}
+          password: ${{secrete.mail_password}}
+          subject: Frontend deployment failed:${{github.repository}}
+          to: ${{github.event.pusher.mail}}
+          from: github Actions Notifier <${{secrete.Mail_username}}>
+          body: |
+            the cI/CD pipeline failed for the push to **${{github.ref_name}}** by **{{github.event.pusher.name}}**.
+            **workflow Run** ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+            please check thepipeline joblogs details.
+            commit_id: ${{github.sha}} 
+
           
 
