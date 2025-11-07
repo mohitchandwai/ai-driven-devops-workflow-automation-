@@ -11,7 +11,7 @@ jobs:
       - name: checkout code 
         uses: actions/checkout@v3
       - name: Gen_Ai_test
-        uses: openai/generate-tests-action@v4
+        uses: actions/checkout@v4
         with:
           api_key: ${{secrets.AI_API_KEY}}
       - name: confirm ai test injestion
