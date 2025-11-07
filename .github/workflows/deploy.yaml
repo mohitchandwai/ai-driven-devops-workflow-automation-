@@ -14,7 +14,7 @@ jobs:
         with:
           api_key: ${{secrets.AI_API_KEY}}
       - name: confirm ai test injestion
-        run : echo "sucefully complete AI testing"
+        run : echo "sucessfully complete AI testing"
       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_KEY }}
 
       - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
@@ -46,8 +46,8 @@ jobs:
         with:
           server_address: smpt.gmail.com 
           server_port: 465
-          username: ${{secrete.mail_username}}
-          password: ${{secrete.mail_password}}
+          username: ${{secrets.mail_username}}
+          password: ${{secrets.mail_password}}
           subject: Frontend deployment failed:${{github.repository}}
           to: ${{github.event.pusher.mail}}
           from: github Actions Notifier <${{secrete.Mail_username}}>
