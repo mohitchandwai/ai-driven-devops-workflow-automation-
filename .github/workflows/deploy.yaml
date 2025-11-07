@@ -8,9 +8,10 @@ jobs:
   Ai_based_review_and_custom_tests_and_deploy:
     runs-on: ubuntu-latest
     steps: 
-      - uses: actions/checkout@v3
+      - name: checkout code 
+        uses: actions/checkout@v3
       - name: Gen_Ai_test
-      - uses: openai/generate-tests-action@v2
+        uses: openai/generate-tests-action@v2
         with:
           api_key: ${{secrets.AI_API_KEY}}
       - name: confirm ai test injestion
