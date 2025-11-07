@@ -11,7 +11,7 @@ jobs:
       - name: checkout code 
         uses: actions/checkout@v3
       - name: Gen_Ai_test
-        uses: keploy/action-gen-tests@v1
+        uses: keploy/testgpt@main
         with:
           api_key: ${{secrets.AI_API_KEY}}
       - name: confirm ai test injestion
