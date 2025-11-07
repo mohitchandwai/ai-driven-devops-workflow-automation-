@@ -51,7 +51,7 @@ jobs:
           password: ${{secrets.mail_password}}
           subject: Frontend deployment failed:${{github.repository}}
           to: ${{github.event.pusher.mail}}
-          from: github Actions Notifier <${{secrete.Mail_username}}>
+          from: github Actions Notifier <${{secrets.Mail_username}}>
           body: |
             the cI/CD pipeline failed for the push to **${{github.ref_name}}** by **{{github.event.pusher.name}}**.
             **workflow Run** ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
