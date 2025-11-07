@@ -7,8 +7,7 @@ on:
 jobs:
   Ai_based_review_and_custom_tests_and_deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: checkout code 
+    steps: 
       - uses: actions/checkout@v3
       - name: Gen_Ai_test
       - uses: openai/generate-tests-action@v2
