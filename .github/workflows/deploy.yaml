@@ -36,7 +36,7 @@ jobs:
           existing_bucket_name: elasticbeanstalk-ap-south-1-767397800271
 
           region: ap-south-1
-          version_label: ${{ github.sha }}
+          version_label: ${{ github.sha }}-${{ github.run_id }}
           deployment_package: deploy.zip
   notify_on_failure:
     needs: Ai_based_review_and_custom_tests_and_deploy
