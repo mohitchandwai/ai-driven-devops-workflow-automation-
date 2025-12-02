@@ -25,6 +25,9 @@ jobs:
       - name: Run Docker Unit Tests
         run: docker run -e CI=true cygnetops/react-test npm test
 
+        
+      - name: Install Node Dependencies
+        run: npm install
      
       - name: 🧪 Run Keploy AI Test and Report
         
@@ -58,7 +61,7 @@ jobs:
           echo 'KEPLOY_REPORT<<EOF' >> $GITHUB_OUTPUT
           cat ${GITHUB_WORKSPACE}/${WORKDIR}/final.out >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
-          
+
       - name: confirm ai test injestion
         run : echo "successfully complete AI testing and reporting"
       
