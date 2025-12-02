@@ -25,20 +25,18 @@ jobs:
       - name: Run Docker Unit Tests
         run: docker run -e CI=true cygnetops/react-test npm test
 
-      # --- Keploy AI Test Integration (Replacing Gen_Ai_test placeholder) ---
+     
       - name: 🧪 Run Keploy AI Test and Report
-        # This action installs Keploy, runs the tests using the command, 
-        # and generates a report on the Checks tab or as a PR comment.
+        
         uses: keploy/testgpt@main
         with:
-          # IMPORTANT: Update this command if your frontend/backend service starts differently.
-          # Example assumes you have a Node.js server that runs your frontend build.
+          
           command: "npm start" 
-          delay: 10 # Seconds to wait for the application to start
+          delay: 10 
           
       - name: confirm ai test injestion
         run : echo "successfully complete AI testing and reporting"
-      # --- End Keploy Integration ---
+      
 
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*'
@@ -68,13 +66,12 @@ jobs:
           username: ${{secrets.mail_username}}
           password: ${{secrets.mail_password}}
           subject: Frontend deployment failed:${{github.repository}}
-          # Corrected potential issue: using github.event.pusher.email which is more reliable
-          # Also, ensuring 'to' is specified, as discussed earlier.
+          
           to: ${{github.event.pusher.email || secrets.DEFAULT_NOTIFICATION_MAIL}} 
           from: github Actions Notifier <${{secrets.Mail_username}}>
           body: |
             The CI/CD pipeline failed for the push to **${{github.ref_name}}** by **${{github.event.pusher.name}}**.
             **Workflow Run**: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
-            Please check the pipeline job logs details.
+            Please check the pipeline job logs details.Thank you!!
             
             Commit ID: ${{github.sha}}
