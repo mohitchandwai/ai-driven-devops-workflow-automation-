@@ -33,6 +33,16 @@ jobs:
           
           command: "npm start" 
           delay: 10 
+      - name: test report
+        run: |
+          WORKDIR="." 
+          grep -oE "COMPLETE TESTRUN SUMMARY.\s+total tests: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | sed -r 's/.*([0-9]+)/\1/g' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out
+          grep -oE "total test passed: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | sed -r 's/.*([0-9]+)/\1/g' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out
+          grep -oE "total test failed: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | sed -r 's/.*([0-9]+)/\1/g' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out
+          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out > ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt
+          echo "KEPLOY_REPORT<<EOF" >> $GITHUB_OUTPUT
+          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           
       - name: confirm ai test injestion
         run : echo "successfully complete AI testing and reporting"
@@ -67,7 +77,7 @@ jobs:
           password: ${{secrets.mail_password}}
           subject: Frontend deployment failed:${{github.repository}}
           
-          to: ${{github.event.pusher.email || secrets.DEFAULT_NOTIFICATION_MAIL}} 
+          to: chandwanimohit87m@gmail.com 
           from: github Actions Notifier <${{secrets.Mail_username}}>
           body: |
             The CI/CD pipeline failed for the push to **${{github.ref_name}}** by **${{github.event.pusher.name}}**.
