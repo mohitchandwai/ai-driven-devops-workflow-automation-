@@ -36,14 +36,10 @@ jobs:
       - name: test report
         run: |
           WORKDIR="." 
+          # Corrected sed regex: removed \[ and \]
           grep -oE "COMPLETE TESTRUN SUMMARY.\s+total tests: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | sed -r 's/.*([0-9]+)/\1/g' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out
           grep -oE "total test passed: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | sed -r 's/.*([0-9]+)/\1/g' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out
           grep -oE "total test failed: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | sed -r 's/.*([0-9]+)/\1/g' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out
-          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out > ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt
-          echo "KEPLOY_REPORT<<EOF" >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
       - name: confirm ai test injestion
         run : echo "successfully complete AI testing and reporting"
       
@@ -71,7 +67,7 @@ jobs:
       - name: sending_failure_mail
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smpt.gmail.com 
+          server_address: smtp.gmail.com 
           server_port: 465
           username: ${{secrets.mail_username}}
           password: ${{secrets.mail_password}}
