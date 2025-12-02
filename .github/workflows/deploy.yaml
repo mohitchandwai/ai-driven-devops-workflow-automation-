@@ -7,21 +7,38 @@ on:
 jobs:
   Ai_based_review_and_custom_tests_and_deploy:
     runs-on: ubuntu-latest
+    # Added permissions for the Keploy action to publish the test report on PRs/Checks
+    permissions:
+      checks: write 
+      pull-requests: write 
     steps: 
       - name: checkout code 
         uses: actions/checkout@v3
-      - name: Gen_Ai_test
-        uses: actions/checkout@v4
+        
+      # --- Docker Setup & Standard Tests ---
+      - name: Docker Login
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_KEY }}
+
+      - name: Docker Build (Development)
+        run: docker build -t cygnetops/react-test -f Dockerfile.dev .
+        
+      - name: Run Docker Unit Tests
+        run: docker run -e CI=true cygnetops/react-test npm test
+
+      # --- Keploy AI Test Integration (Replacing Gen_Ai_test placeholder) ---
+      - name: 🧪 Run Keploy AI Test and Report
+        # This action installs Keploy, runs the tests using the command, 
+        # and generates a report on the Checks tab or as a PR comment.
+        uses: keploy/testgpt@main
         with:
-          api_key: ${{secrets.AI_API_KEY}}
+          # IMPORTANT: Update this command if your frontend/backend service starts differently.
+          # Example assumes you have a Node.js server that runs your frontend build.
+          command: "npm start" 
+          delay: 10 # Seconds to wait for the application to start
           
       - name: confirm ai test injestion
-        run : echo "sucessfully complete AI testing"
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_KEY }}
-
-      - run: docker build -t cygnetops/react-test -f Dockerfile.dev .
-      - run: docker run -e CI=true cygnetops/react-test npm test
-
+        run : echo "successfully complete AI testing and reporting"
+      # --- End Keploy Integration ---
 
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*'
@@ -34,10 +51,10 @@ jobs:
           application_name: Frontend 
           environment_name: Frontend-env
           existing_bucket_name: elasticbeanstalk-ap-south-1-767397800271
-
           region: ap-south-1
           version_label: ${{ github.sha }}
           deployment_package: deploy.zip
+          
   notify_on_failure:
     needs: Ai_based_review_and_custom_tests_and_deploy
     if: failure() && needs.Ai_based_review_and_custom_tests_and_deploy.result == 'failure'
@@ -51,14 +68,13 @@ jobs:
           username: ${{secrets.mail_username}}
           password: ${{secrets.mail_password}}
           subject: Frontend deployment failed:${{github.repository}}
-          to: ${{github.event.pusher.mail}}
+          # Corrected potential issue: using github.event.pusher.email which is more reliable
+          # Also, ensuring 'to' is specified, as discussed earlier.
+          to: ${{github.event.pusher.email || secrets.DEFAULT_NOTIFICATION_MAIL}} 
           from: github Actions Notifier <${{secrets.Mail_username}}>
           body: |
-            the cI/CD pipeline failed for the push to **${{github.ref_name}}** by **{{github.event.pusher.name}}**.
-            **workflow Run** ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
-            please check the pipeline job logs details.
-
-            Commit ID: ${{github.sha}} 
-
-          
-
+            The CI/CD pipeline failed for the push to **${{github.ref_name}}** by **${{github.event.pusher.name}}**.
+            **Workflow Run**: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+            Please check the pipeline job logs details.
+            
+            Commit ID: ${{github.sha}}
