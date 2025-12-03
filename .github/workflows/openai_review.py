@@ -3,25 +3,22 @@ import json
 import sys
 from openai import OpenAI
 
-# 1. Initialize the OpenAI client using the API Key from environment variable
-# The API key should be set in the GitHub Actions step environment variables.
+
 try:
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 except Exception as e:
     print(f"Error initializing OpenAI client: {e}", file=sys.stderr)
     sys.exit(1)
-
-# 2. Get the code changes (git diff) from the environment variable
+    
 CODE_CHANGES = os.environ.get("CODE_CHANGES", "")
 
 if not CODE_CHANGES:
-    # If no changes are detected (e.g., first commit or empty diff), exit cleanly with a neutral result
     result = {"score": 10, "summary": "No code changes detected for review.", "issues": []}
     with open("ai_review_result.json", "w") as f:
         json.dump(result, f)
     sys.exit(0)
 
-# 3. Define the comprehensive system and user prompts
+
 SYSTEM_PROMPT = (
     "You are a Senior Software Engineer specializing in security and code quality. "
     "Your task is to review a git diff and provide a structured assessment. "
