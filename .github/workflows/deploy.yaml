@@ -38,24 +38,34 @@ jobs:
           delay: 10 
       - name: test report
         run: |
-          WORKDIR="." 
+          set +e
+          WORKDIR="."
           REPORT_PATH="${GITHUB_WORKSPACE}/${WORKDIR}/report.txt"
           
-          # 1. Search for metrics. Use '|| echo 0' to output '0' if grep fails (i.e., no summary found).
-          # We use the corrected grep patterns and pipe directly to the output files.
-          grep -oE "Total tests: [0-9]+" "$REPORT_PATH" | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out
-          grep -oE "Total test passed: [0-9]+" "$REPORT_PATH" | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out
-          grep -oE "Total test failed: [0-9]+" "$REPORT_PATH" | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out
+          # 2. Use 'cat' and 'tr' to remove all non-printable/control characters (like ANSI codes) 
+          # before using GREP. This makes the extraction much cleaner.
+          CLEAN_REPORT=$(cat "$REPORT_PATH" | tr -cd '\11\12\15\40-\176')
           
-          # 2. Combine the results.
+          # 3. Use GREP only for number extraction.
+          # Total Tests: search for the whole line, then search for the first number on that line.
+          TOTAL_TESTS=$(echo "$CLEAN_REPORT" | grep "Total tests:" | grep -oE "[0-9]+")
+          TOTAL_PASSED=$(echo "$CLEAN_REPORT" | grep "Total test passed:" | grep -oE "[0-9]+")
+          TOTAL_FAILED=$(echo "$CLEAN_REPORT" | grep "Total test failed:" | grep -oE "[0-9]+")
+          
+          # 4. Use shell parameter expansion to output '0' if the variable is empty.
+          # Output format: Total | Passed | Failed
+          echo "${TOTAL_TESTS:-0}" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out
+          echo "${TOTAL_PASSED:-0}" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out
+          echo "${TOTAL_FAILED:-0}" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out
+
+          # 5. Combine and finalize output
           cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out > ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt
           
-          # 3. Output logic
           echo "KEPLOY_REPORT<<EOF" >> $GITHUB_OUTPUT
           cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          # Set '-e' back to ensure subsequent commands in this job fail on error
+          # 6. Re-enable error checking for the rest of the job.
           set -e
 
       - name: confirm ai test injestion
