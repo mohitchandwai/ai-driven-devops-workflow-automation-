@@ -26,55 +26,37 @@ jobs:
         run: docker run -e CI=true cygnetops/react-test npm test
 
 
-      - name: Install Node Dependencies
-        run: npm install
-     
-      - name: 🧪 Run Keploy AI Test and Report
-        
-        uses: keploy/testgpt@main
-        with:
-          
-          command: "npm start" 
-          delay: 10 
-      - name: test report
+      - name: Get Code Changes (git diff)
+        id: get_changes
         run: |
-          # 1. Allow the script to continue even if AWK finds no match (i.e., report.txt is incomplete)
-          set +e
-          WORKDIR="."
-          REPORT_PATH="${GITHUB_WORKSPACE}/${WORKDIR}/report.txt"
-
-          # 2. Extract Total Tests using AWK, defaulting to an empty string if line not found
-          TOTAL_TESTS=$(awk '/Total tests:/ { 
-              print $NF 
-              exit 
-          }' "$REPORT_PATH")
-
-          # 3. Extract Total Passed
-          TOTAL_PASSED=$(awk '/Total test passed:/ { 
-              print $NF 
-              exit 
-          }' "$REPORT_PATH")
-
-          # 4. Extract Total Failed
-          TOTAL_FAILED=$(awk '/Total test failed:/ { 
-              print $NF 
-              exit 
-          }' "$REPORT_PATH")
-
-          # 5. Use shell parameter expansion (:-0) to output '0' if the variable is empty.
-          echo "${TOTAL_TESTS:-0}" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out
-          echo "${TOTAL_PASSED:-0}" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out
-          echo "${TOTAL_FAILED:-0}" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out
-
-          # 6. Combine and finalize output
-          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out > ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt
-
-          echo "KEPLOY_REPORT<<EOF" >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Get the diff between the current commit (HEAD) and the previous one (HEAD^)
+          # Use || true to prevent the step from failing if there's no HEAD^ (e.g., first commit)
+          CHANGES=$(git diff HEAD^ HEAD || true)
           
-          # 7. Re-enable error checking for the rest of the job.
-          set -e
+          # Output the changes to a file and then set it as a multi-line output variable
+          echo "CODE_DIFF<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install OpenAI Library
+        run: pip install openai
+
+      - name: Run AI Review and Analysis
+        id: ai_review
+        env:
+          OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
+          # Pass the diff content to the python script via an environment variable
+          CODE_CHANGES: ${{ steps.get_changes.outputs.CODE_DIFF }}
+        run: |
+          mkdir -p .github/scripts
+          # Save the Python script (openai_review.py) to run it
+          cat <<'EOF' > .github/scripts/openai_review.py
+          
       - name: confirm ai test injestion
         run : echo "successfully complete AI testing and reporting"
       
