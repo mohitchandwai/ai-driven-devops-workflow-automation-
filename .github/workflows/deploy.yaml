@@ -38,6 +38,7 @@ jobs:
           delay: 10 
       - name: test report
         run: |
+          # 1. Allow the script to continue even if AWK finds no match (i.e., report.txt is incomplete)
           set +e
           WORKDIR="."
           REPORT_PATH="${GITHUB_WORKSPACE}/${WORKDIR}/report.txt"
