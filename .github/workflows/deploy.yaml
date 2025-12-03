@@ -25,7 +25,7 @@ jobs:
       - name: Run Docker Unit Tests
         run: docker run -e CI=true cygnetops/react-test npm test
 
-        
+
       - name: Install Node Dependencies
         run: npm install
      
@@ -39,28 +39,24 @@ jobs:
       - name: test report
         run: |
           WORKDIR="." 
+          REPORT_PATH="${GITHUB_WORKSPACE}/${WORKDIR}/report.txt"
           
-          # Use || true to prevent the step from failing if grep finds no match (which is expected if Keploy fails)
+          # 1. Search for metrics. Use '|| echo 0' to output '0' if grep fails (i.e., no summary found).
+          # We use the corrected grep patterns and pipe directly to the output files.
+          grep -oE "Total tests: [0-9]+" "$REPORT_PATH" | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out
+          grep -oE "Total test passed: [0-9]+" "$REPORT_PATH" | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out
+          grep -oE "Total test failed: [0-9]+" "$REPORT_PATH" | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out
           
-          # Search for total tests. Use the simpler, standard regex for extraction.
-          grep -oE "Total tests: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out || true
+          # 2. Combine the results.
+          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out > ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt
           
-          grep -oE "Total test passed: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out || true
+          # 3. Output logic
+          echo "KEPLOY_REPORT<<EOF" >> $GITHUB_OUTPUT
+          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_out.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           
-          grep -oE "Total test failed: [0-9]+" ${GITHUB_WORKSPACE}/${WORKDIR}/report.txt | grep -oE "[0-9]+" > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out || true
-          
-          # Check if the extracted files are empty, and if so, write '0'
-          [ -s ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out ] || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out
-          [ -s ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out ] || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out
-          [ -s ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out ] || echo '0' > ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out
-
-          # Combine the results
-          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_tests.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_passed.out ${GITHUB_WORKSPACE}/${WORKDIR}/final_total_failed.out > ${GITHUB_WORKSPACE}/${WORKDIR}/final.out
-          
-          # Output logic remains the same
-          echo 'KEPLOY_REPORT<<EOF' >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${WORKDIR}/final.out >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
+          # Set '-e' back to ensure subsequent commands in this job fail on error
+          set -e
 
       - name: confirm ai test injestion
         run : echo "successfully complete AI testing and reporting"
