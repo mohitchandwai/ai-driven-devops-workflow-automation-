@@ -15,7 +15,7 @@ function App() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          started to learn new technologies
+          Learn new technology mohit special technologies
         </a>
       </header>
     </div>
