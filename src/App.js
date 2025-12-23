@@ -10,6 +10,8 @@ function App() {
           Fantastic work <code>src/App.js</code> working
           new tech the revolution in Aiops
           by Mohit Chandwani
+
+          the future is here comming fast
            </p>
         <a
           className="App-link"
